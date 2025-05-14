@@ -1,2 +1,1 @@
-mod voting;
-mod create_proposal;
+pub mod voting_president;

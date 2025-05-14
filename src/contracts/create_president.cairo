@@ -1,39 +1,63 @@
-use starknet::ContractAddress;
-use starknet::get_caller_address;
-
+use starknet::contract::ContractState;
+use starknet::contract::traits::Contract;
+use starknet::storage::{Storage, StorageMap};
+use starknet::context::get_caller_address;
+use starknet::prelude::*;
 
 #[starknet::interface]
-trait VotingABI<TContractState> {
-    fn create_president(ref self: TContractState, president_name: felt252,president_first_surname: felt252,president_second_surname:felt252, political_party: felt252);
-    fn deactive_presindent(ref self: TContractState, id: felt252);
+trait PresidentABI<TContractState> {
+    fn create_president(
+        ref self: TContractState,
+        name: felt252,
+        first_surname: felt252,
+        second_surname: felt252,
+        political_party: felt252
+    );
+    fn deactivate_president(
+        ref self: ContractState,
+        id: felt252
+    );
 }
 
-#[starknet::contract]
-mod VotingContract {
-    use super::{ContractAddress, get_caller_address, VotingABI};
-    use starknet::storage::Map;
-    use starknet::storage::{StorageMapReadAccess, StorageMapWriteAccess};
-    use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
+#[derive(Copy, Drop, Serde, Clone)]
+struct President {
+    name: felt252,
+    first_surname: felt252,
+    second_surname: felt252,
+    political_party: felt252,
+    active: bool,
+}
 
-    #[storage]
-    struct Storage {
-        information: Map<(felt252), felt252, felt252, felt252, bool>,
+#[storage]
+struct Storage {
+    presidents: StorageMap<felt252, President>,
+    next_president_id: felt252,
+}
+
+#[abi(embed_v0)]
+impl PresidentABIImpl of PresidentABI<ContractState> {
+    fn create_president(
+        ref self: ContractState,
+        name: felt252,
+        first_surname: felt252,
+        second_surname: felt252,
+        political_party: felt252
+    ) {
+        let id = self.next_president_id.read();
+        let new_president = President {
+            name,
+            first_surname,
+            second_surname,
+            political_party,
+            active: true,
+        };
+        self.presidents.write(id, new_president);
+        self.next_president_id.write(id + 1);
     }
 
-    #[abi(embed_v0)]
-    impl VotingABIImpl of VotingABI<ContractState> {
-        fn create_president(ref self: ContractState, president_name: felt252,president_first_surname: felt252, president_second_surname: felt252, political_party: felt252) {
-            let caller = get_caller_address();
-
-            // Registrar presidente
-            self.information.write(president_name, president_first_surname, president_second_surname, political_party, false);
-        }
-           
-        fn deactive_presindent(ref self: ContractState, id: felt252) {
-            let caller = get_caller_address();
-            presidentUpdate = self.information.read(id);
-            // Registrar voto
-            self.information.write(presindentUpdate,!false);
-        }
+    fn deactivate_president(ref self: ContractState, id: felt252) {
+        let mut president = self.presidents.read(id);
+        president.active = false;
+        self.presidents.write(id, president);
     }
 }
