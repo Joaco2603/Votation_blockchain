@@ -64,7 +64,7 @@ mod DeputiesContract {
         fn create_deputies(ref self: ContractState, deputies: Array<Deputies>){
             let mut number: u32 = self.next_deputie_id.read().try_into().unwrap();
             
-            while number > deputies.len(){
+            while number < deputies.len(){
                 self.deputie.write(number.into(), *deputies[number]);
     
                 number += 1;
@@ -72,9 +72,9 @@ mod DeputiesContract {
         }
     
         fn desactivate_deputie(ref self: ContractState, id: felt252) {
-            let mut deputiesInBlockchain = self.deputies.read(id);
-            deputies.active = false;
-            self.deputies.write(id, deputiesInBlockchain);
+            let mut deputiesInBlockchain = self.deputie.entry(id).read();
+            deputiesInBlockchain.active = false;
+            self.deputie.write(id, deputiesInBlockchain);
         }
     }
 }
