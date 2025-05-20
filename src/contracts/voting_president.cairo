@@ -1,7 +1,6 @@
 use starknet::ContractAddress;
 use starknet::get_caller_address;
 
-
 #[starknet::interface]
 trait VotingABI<TContractState> {
     fn vote(ref self: TContractState, president_index: felt252, secret_hash: felt252);
