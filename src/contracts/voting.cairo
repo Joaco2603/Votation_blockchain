@@ -1,4 +1,4 @@
-use starknet::ContractAddress;
+use starknet::{ContractAddress};
 use starknet::get_caller_address;
 
 #[starknet::interface]
@@ -19,10 +19,11 @@ mod VotingContract {
         has_voted: Map<(ContractAddress, felt252), felt252>, // user -> proposal_index -> has_voted
         proposal_count: felt252,
         proposal_votes: Map<felt252, felt252>,
+        voting_nft_contract: ContractAddress,
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {
+    fn constructor(ref self: ContractState, nft_contract: ContractAddress) {
         self.proposal_count.write(0);
     }
 

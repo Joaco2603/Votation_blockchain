@@ -147,6 +147,7 @@ dependencies = [
 name = "votations"
 version = "0.1.0"
 dependencies = [
+ "openzeppelin",
  "pragma_lib",
  "snforge_std",
 ]
