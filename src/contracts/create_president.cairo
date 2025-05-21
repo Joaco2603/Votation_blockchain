@@ -24,7 +24,6 @@ struct President {
 }
 
 
-
 #[starknet::contract]
 mod PresidentContract {
     use super::{PresidentABI, President};
