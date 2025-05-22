@@ -56,6 +56,12 @@ pub mod VotingNFT {
         pub has_voted: Map::<ContractAddress, bool>, 
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct VoteTokenMinted {
+        pub recipient: ContractAddress,
+        pub token_id: u256,
+    }
+
     // Define events
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -66,6 +72,7 @@ pub mod VotingNFT {
         SRC5Event: SRC5Component::Event,
         // Custom event for when the token is used
         TokenUsed: TokenUsed,
+        VoteTokenMinted: VoteTokenMinted
     }
 
     #[derive(Drop, starknet::Event)]
@@ -234,16 +241,18 @@ pub mod VotingNFT {
     #[external(v0)]
     fn mint_vote_token(ref self: ContractState, to: ContractAddress) {
         // Check if the caller is the authorized voting contract
-        assert(get_caller_address() == self.voting_contract.read(), "Unauthorized caller");
+        assert(get_caller_address() == self.voting_contract.read(), 'Unauthorized caller');
 
         // Check if the recipient has already received a vote token
-        assert(!self.has_voted.read(to), "Ya votaste en esta elección");
+        assert(!self.has_voted.read(to), 'You already voted in elections');
 
         // Token ID = recipient address (unique and verifiable)
-        let token_id: u256 = to.into(); // Correctly convert ContractAddress to u256
+        let to_felt252: felt252 = to.into();
+        let token_id = to_felt252.into();
+
 
         // Mint the ERC721 token using the internal _mint function
-        self.erc721._mint(to, token_id);
+        self.erc721.mint(to, token_id);
 
         // Mark the recipient as having voted
         self.has_voted.write(to, true);
