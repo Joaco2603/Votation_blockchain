@@ -1,4 +1,4 @@
 mod VotingNFT;
 mod contracts{
-    use super::VotingNFT::VotingNFT::ContractState;
+    use super::VotingNFT::{IVotingNFTDispatcher, IVotingNFTDispatcherTrait};
 }

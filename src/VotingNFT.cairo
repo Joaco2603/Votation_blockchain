@@ -3,7 +3,7 @@ use starknet::get_caller_address;
 use starknet::storage::*;
 
 #[starknet::interface]
-trait IVotingNFT<TContractState> {
+pub trait IVotingNFT<TContractState> {
     // Estas deben coincidir con las funciones públicas de VotingNFT
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
     fn owner_of(self: @TContractState, token_id: u256) -> ContractAddress;
@@ -239,7 +239,7 @@ pub mod VotingNFT {
     // }
 
     #[external(v0)]
-    fn mint_vote_token(ref self: ContractState, to: ContractAddress) {
+    fn mint_president_vote_token(ref self: ContractState, to: ContractAddress) {
         // Check if the caller is the authorized voting contract
         assert(get_caller_address() == self.voting_contract.read(), 'Unauthorized caller');
 
@@ -259,6 +259,28 @@ pub mod VotingNFT {
 
         // Emit a custom event for successful minting
         self.emit(Event::VoteTokenMinted(VoteTokenMinted { recipient: to, token_id }));
+    }
+
+    #[external(v0)]
+    fn mint_deputy_vote_token(ref self: ContractState, to: ContractAddress) {
+        // Verificar que el caller sea el contrato de votación de diputados
+        assert(
+            get_caller_address() == self.deputies_voting_contract.read(),
+            'Solo el contrato de diputados puede mintear'
+        );
+    
+        // Verificar que no haya votado antes en diputados
+        assert(
+            !self.has_voted_deputies.read(to),
+            'Ya votaste en diputados'
+        );
+    
+        // Mint (usando token_id único, ej: address + "-deputy")
+        let token_id = ...; // Lógica única para diputados
+        self.erc721_deputies.mint(to, token_id);
+    
+        // Marcar como votado
+        self.has_voted_deputies.write(to, true);
     }
 
     // Getter function to check if a user has voted
